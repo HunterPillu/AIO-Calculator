@@ -21,3 +21,5 @@ Calculator engines live below `app.prinkal.calculator.feature`. They do not depe
 Financial engines return typed success/error results. The EMI engine calculates without display rounding, produces a complete amortization schedule, and keeps the Compose screen responsible only for input conversion and presentation.
 
 Loan prepayment calculations reuse a small repayment-plan simulation for both one-time and periodic prepayments. The comparison result keeps tenure, EMI, and interest-saved values typed so screens do not contain financial formulas.
+
+The shared UI uses a small route state in `App.kt` for the currently selected calculator and dedicated financial result destinations. This keeps navigation platform-independent while avoiding a heavyweight navigation dependency for the current feature count. `CalculatorTheme` owns the light/dark color system, and `core/formatting/NumberFormatting` owns display rounding; engines retain full calculation precision.

@@ -22,5 +22,8 @@ Open `iosApp` in Xcode to run the iOS target and its shared Compose UI.
 - Keep display rounding and formatting out of formulas.
 - Prefer Kotlin and existing project dependencies before adding libraries.
 - Add common tests for every calculator engine.
+- Keep calculator input screens separate from result screens when results contain schedules or comparisons.
+- Use shared `formatNumber`/`formatCurrency` for display values and do not round inside calculation engines.
+- Use icons with content descriptions for navigation and calculator actions.
 
 The iOS simulator test task is unavailable on Windows; run it from Xcode or macOS. Android host tests exercise the shared calculation logic on this platform.

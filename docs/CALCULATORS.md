@@ -26,6 +26,8 @@ Inputs are loan amount, annual interest rate, and tenure in months or years. Res
 
 Inputs are outstanding principal, annual interest rate, current EMI, remaining tenure, and a prepayment amount. The calculator compares reducing tenure while keeping EMI unchanged with reducing EMI while keeping tenure unchanged. It also supports periodic additional payments monthly, quarterly, half-yearly, or yearly and reports the interest saved.
 
+EMI and loan-prepayment results open on separate result screens. Monetary and calculated result values are displayed with a maximum of two fraction digits; intermediate calculation values are not rounded.
+
 ## Planned next
 
 Investment, savings, tax, converter, and general utility calculators will be added as independent features. Each will expose validated inputs, a typed result model, and unit tests for normal, boundary, invalid, and precision-sensitive cases.
