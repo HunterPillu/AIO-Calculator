@@ -2,7 +2,8 @@ package app.prinkal.calculator.feature.catalog
 
 enum class CalculatorCategory(val label: String) {
     MATHEMATICS("Mathematics"),
-    LOANS("Loans")
+    LOANS("Loans"),
+    INVESTMENTS("Investments")
 }
 
 data class CalculatorDefinition(
@@ -41,6 +42,20 @@ object CalculatorCatalog {
             name = "Loan Prepayment",
             description = "Compare reducing loan tenure or reducing the EMI after prepayment.",
             category = CalculatorCategory.LOANS,
+            isPopular = false
+        ),
+        CalculatorDefinition(
+            id = "sip",
+            name = "SIP Calculator",
+            description = "Project monthly investments with optional annual step-up.",
+            category = CalculatorCategory.INVESTMENTS,
+            isPopular = true
+        ),
+        CalculatorDefinition(
+            id = "lumpsum",
+            name = "Lumpsum Calculator",
+            description = "Project a one-time investment with annual compounding.",
+            category = CalculatorCategory.INVESTMENTS,
             isPopular = false
         )
     )

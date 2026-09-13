@@ -28,6 +28,14 @@ Inputs are outstanding principal, annual interest rate, current EMI, remaining t
 
 EMI and loan-prepayment results open on separate result screens. Monetary and calculated result values are displayed with a maximum of two fraction digits; intermediate calculation values are not rounded.
 
+### SIP calculator
+
+Inputs are monthly SIP, expected annual return, duration, and optional annual step-up. The engine returns total invested, estimated returns, final value, and yearly growth. Contributions are added at the beginning of each month before monthly growth is applied.
+
+### Lumpsum calculator
+
+Inputs are initial investment, expected annual return, and duration. The engine applies annual compounding and returns invested amount, estimated returns, final value, and yearly growth.
+
 ## Planned next
 
-Investment, savings, tax, converter, and general utility calculators will be added as independent features. Each will expose validated inputs, a typed result model, and unit tests for normal, boundary, invalid, and precision-sensitive cases.
+SIP + lumpsum, SWP, savings, tax, converter, and general utility calculators will be added as independent features. Each will expose validated inputs, a typed result model, and unit tests for normal, boundary, invalid, and precision-sensitive cases.

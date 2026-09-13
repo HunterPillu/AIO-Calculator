@@ -27,6 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Close
@@ -80,9 +81,17 @@ import app.prinkal.calculator.feature.loanprepayment.LoanPrepaymentResult
 import app.prinkal.calculator.feature.loanprepayment.PeriodicPrepaymentCalculationResult
 import app.prinkal.calculator.feature.loanprepayment.PeriodicPrepaymentResult
 import app.prinkal.calculator.feature.loanprepayment.PrepaymentFrequency
+import app.prinkal.calculator.feature.lumpsum.LumpsumCalculationResult
+import app.prinkal.calculator.feature.lumpsum.LumpsumCalculator
+import app.prinkal.calculator.feature.lumpsum.LumpsumInput
+import app.prinkal.calculator.feature.lumpsum.LumpsumResult
 import app.prinkal.calculator.feature.simplecalculator.AngleMode
 import app.prinkal.calculator.feature.simplecalculator.EvaluationResult
 import app.prinkal.calculator.feature.simplecalculator.ExpressionEvaluator
+import app.prinkal.calculator.feature.sip.SipCalculationResult
+import app.prinkal.calculator.feature.sip.SipCalculator
+import app.prinkal.calculator.feature.sip.SipInput
+import app.prinkal.calculator.feature.sip.SipResult
 import app.prinkal.calculator.ui.CalculatorTheme
 
 private sealed interface AppDestination {
@@ -90,6 +99,8 @@ private sealed interface AppDestination {
     data class Calculator(val id: String) : AppDestination
     data class EmiResultRoute(val value: EmiResult) : AppDestination
     data class LoanResultRoute(val value: LoanResultBundle) : AppDestination
+    data class SipResultRoute(val value: SipResult) : AppDestination
+    data class LumpsumResultRoute(val value: LumpsumResult) : AppDestination
 }
 
 private data class LoanResultBundle(
@@ -140,6 +151,14 @@ private fun CalculatorApp() {
                         destination = AppDestination.LoanResultRoute(it)
                     }
                 )
+                "sip" -> SipCalculatorScreen(
+                    onBack = { destination = AppDestination.Home },
+                    onResult = { destination = AppDestination.SipResultRoute(it) }
+                )
+                "lumpsum" -> LumpsumCalculatorScreen(
+                    onBack = { destination = AppDestination.Home },
+                    onResult = { destination = AppDestination.LumpsumResultRoute(it) }
+                )
             }
             is AppDestination.EmiResultRoute -> EmiResultScreen(
                 result = target.value,
@@ -148,6 +167,14 @@ private fun CalculatorApp() {
             is AppDestination.LoanResultRoute -> LoanResultScreen(
                 result = target.value,
                 onBack = { destination = AppDestination.Calculator("loan-prepayment") }
+            )
+            is AppDestination.SipResultRoute -> SipResultScreen(
+                result = target.value,
+                onBack = { destination = AppDestination.Calculator("sip") }
+            )
+            is AppDestination.LumpsumResultRoute -> LumpsumResultScreen(
+                result = target.value,
+                onBack = { destination = AppDestination.Calculator("lumpsum") }
             )
         }
     }
@@ -305,6 +332,8 @@ private fun CalculatorCard(
         "simple" -> Icons.Default.Calculate
         "scientific" -> Icons.Default.Functions
         "emi" -> Icons.Default.Payments
+        "sip" -> Icons.AutoMirrored.Filled.TrendingUp
+        "lumpsum" -> Icons.Default.AccountBalance
         else -> Icons.Default.AccountBalance
     }
     ElevatedCard(
@@ -711,6 +740,193 @@ private fun EmiResultScreen(
 }
 
 @Composable
+private fun SipCalculatorScreen(
+    onBack: () -> Unit,
+    onResult: (SipResult) -> Unit
+) {
+    var monthlyInvestment by remember { mutableStateOf("10000") }
+    var annualReturn by remember { mutableStateOf("12") }
+    var durationYears by remember { mutableStateOf("10") }
+    var annualStepUp by remember { mutableStateOf("0") }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    fun calculate() {
+        when (
+            val calculation = SipCalculator.calculate(
+                SipInput(
+                    monthlyInvestment = monthlyInvestment.toDoubleOrNull() ?: Double.NaN,
+                    annualReturnPercent = annualReturn.toDoubleOrNull() ?: Double.NaN,
+                    durationYears = durationYears.toIntOrNull() ?: 0,
+                    annualStepUpPercent = annualStepUp.toDoubleOrNull() ?: Double.NaN
+                )
+            )
+        ) {
+            is SipCalculationResult.Success -> {
+                error = null
+                onResult(calculation.value)
+            }
+            is SipCalculationResult.Error -> error = calculation.message
+        }
+    }
+
+    CalculatorScaffold(
+        title = "SIP calculator",
+        description = "Project monthly investments and see how an annual step-up changes growth.",
+        onBack = onBack
+    ) {
+        CalculatorInputField("Monthly SIP", monthlyInvestment) {
+            monthlyInvestment = it
+            error = null
+        }
+        CalculatorInputField("Expected annual return (%)", annualReturn) {
+            annualReturn = it
+            error = null
+        }
+        CalculatorInputField("Investment duration (years)", durationYears) {
+            durationYears = it
+            error = null
+        }
+        CalculatorInputField("Annual SIP step-up (%)", annualStepUp) {
+            annualStepUp = it
+            error = null
+        }
+        Button(onClick = ::calculate, modifier = Modifier.fillMaxWidth()) {
+            Text("Calculate SIP")
+        }
+        error?.let {
+            Text(it, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+@Composable
+private fun SipResultScreen(
+    result: SipResult,
+    onBack: () -> Unit
+) {
+    ResultScaffold(title = "SIP result", onBack = onBack) {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(26.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(22.dp)) {
+                Text("Final value", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(
+                    formatCurrency(result.finalValue),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+        SummaryRow("Total invested", formatCurrency(result.totalInvested))
+        SummaryRow("Estimated returns", formatCurrency(result.estimatedReturns))
+        Text("Yearly growth", style = MaterialTheme.typography.titleLarge)
+        result.yearlyGrowth.forEach { growth ->
+            ResultCard(
+                title = "Year ${growth.year}",
+                value = formatCurrency(growth.value),
+                detail = "Invested ${formatCurrency(growth.invested)} · " +
+                    "Returns ${formatCurrency(growth.estimatedReturns)}"
+            )
+        }
+    }
+}
+
+@Composable
+private fun LumpsumCalculatorScreen(
+    onBack: () -> Unit,
+    onResult: (LumpsumResult) -> Unit
+) {
+    var initialInvestment by remember { mutableStateOf("100000") }
+    var annualReturn by remember { mutableStateOf("12") }
+    var durationYears by remember { mutableStateOf("10") }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    fun calculate() {
+        when (
+            val calculation = LumpsumCalculator.calculate(
+                LumpsumInput(
+                    initialInvestment = initialInvestment.toDoubleOrNull() ?: Double.NaN,
+                    annualReturnPercent = annualReturn.toDoubleOrNull() ?: Double.NaN,
+                    durationYears = durationYears.toIntOrNull() ?: 0
+                )
+            )
+        ) {
+            is LumpsumCalculationResult.Success -> {
+                error = null
+                onResult(calculation.value)
+            }
+            is LumpsumCalculationResult.Error -> error = calculation.message
+        }
+    }
+
+    CalculatorScaffold(
+        title = "Lumpsum calculator",
+        description = "Project a one-time investment using annual compounding.",
+        onBack = onBack
+    ) {
+        CalculatorInputField("Initial investment", initialInvestment) {
+            initialInvestment = it
+            error = null
+        }
+        CalculatorInputField("Expected annual return (%)", annualReturn) {
+            annualReturn = it
+            error = null
+        }
+        CalculatorInputField("Investment duration (years)", durationYears) {
+            durationYears = it
+            error = null
+        }
+        Button(onClick = ::calculate, modifier = Modifier.fillMaxWidth()) {
+            Text("Calculate lumpsum")
+        }
+        error?.let {
+            Text(it, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+@Composable
+private fun LumpsumResultScreen(
+    result: LumpsumResult,
+    onBack: () -> Unit
+) {
+    ResultScaffold(title = "Lumpsum result", onBack = onBack) {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(26.dp),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(22.dp)) {
+                Text("Final value", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(
+                    formatCurrency(result.finalValue),
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+        SummaryRow("Invested amount", formatCurrency(result.investedAmount))
+        SummaryRow("Estimated returns", formatCurrency(result.estimatedReturns))
+        Text("Yearly growth", style = MaterialTheme.typography.titleLarge)
+        result.yearlyGrowth.forEach { growth ->
+            ResultCard(
+                title = "Year ${growth.year}",
+                value = formatCurrency(growth.value),
+                detail = "Estimated returns ${formatCurrency(growth.estimatedReturns)}"
+            )
+        }
+    }
+}
+
+@Composable
 private fun LoanPrepaymentScreen(
     onBack: () -> Unit,
     onResult: (LoanResultBundle) -> Unit
@@ -737,7 +953,7 @@ private fun LoanPrepaymentScreen(
         val periodic = LoanPrepaymentCalculator.calculatePeriodic(
             input = input(),
             periodicAmount = periodicPrepayment.toDoubleOrNull() ?: Double.NaN,
-            frequency = PrepaymentFrequency.values()[frequencyIndex]
+            frequency = PrepaymentFrequency.entries[frequencyIndex]
         )
         val comparisonValue = (comparison as? LoanPrepaymentCalculationResult.Success)?.value
         val periodicValue = (periodic as? PeriodicPrepaymentCalculationResult.Success)?.value
@@ -785,12 +1001,12 @@ private fun LoanPrepaymentScreen(
             FilledTonalButton(
                 onClick = {
                     frequencyIndex =
-                        (frequencyIndex + 1) % PrepaymentFrequency.values().size
+                        (frequencyIndex + 1) % PrepaymentFrequency.entries.size
                     error = null
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(PrepaymentFrequency.values()[frequencyIndex].label)
+                Text(PrepaymentFrequency.entries[frequencyIndex].label)
             }
             Button(onClick = ::calculate, modifier = Modifier.weight(1f)) {
                 Text("Compare")

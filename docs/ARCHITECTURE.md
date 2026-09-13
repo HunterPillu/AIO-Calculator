@@ -23,3 +23,5 @@ Financial engines return typed success/error results. The EMI engine calculates 
 Loan prepayment calculations reuse a small repayment-plan simulation for both one-time and periodic prepayments. The comparison result keeps tenure, EMI, and interest-saved values typed so screens do not contain financial formulas.
 
 The shared UI uses a small route state in `App.kt` for the currently selected calculator and dedicated financial result destinations. This keeps navigation platform-independent while avoiding a heavyweight navigation dependency for the current feature count. `CalculatorTheme` owns the light/dark color system, and `core/formatting/NumberFormatting` owns display rounding; engines retain full calculation precision.
+
+Investment engines under `feature/sip` and `feature/lumpsum` return typed result models containing summary values and yearly growth snapshots. SIP calculations use an explicit beginning-of-month contribution assumption so the formula remains reproducible and testable.
