@@ -15,7 +15,7 @@
 | UI-3 | Icons, animations, and two-decimal formatting | COMPLETE |
 | 6 | SIP calculator | COMPLETE |
 | 7 | Lumpsum calculator | COMPLETE |
-| 8+ | SIP + lumpsum, SWP, savings, tax, converter, utility, history, and release features | NOT STARTED |
+| 8+ | Version 1.1: SIP + lumpsum, SWP, savings, tax, converter, utility, history, and sharing | DEFERRED |
 
 The project is intentionally built incrementally. A phase is marked complete only after implementation, validation, tests, build verification, regression review, and documentation are addressed.
 
@@ -36,3 +36,5 @@ UI-3 adds animated route transitions, animated result entry, accessible icons, a
 Phase 6 adds monthly SIP projections with optional annual step-up. Contributions are modeled at the beginning of each month, monthly compounding uses the expected annual return divided by 12, and the result includes yearly invested/return/value snapshots.
 
 Phase 7 adds one-time lumpsum projections with annual compounding and yearly growth snapshots. Both investment calculators validate inputs in shared calculation engines and keep result presentation on dedicated screens.
+
+Version 1.0 release hardening and publishing work is tracked separately in [RELEASE.md](RELEASE.md). Remaining calculator phases are intentionally deferred to Version 1.1.

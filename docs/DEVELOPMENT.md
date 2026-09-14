@@ -26,4 +26,8 @@ Open `iosApp` in Xcode to run the iOS target and its shared Compose UI.
 - Use shared `formatNumber`/`formatCurrency` for display values and do not round inside calculation engines.
 - Use icons with content descriptions for navigation and calculator actions.
 
+## Release workflow
+
+See [RELEASE.md](RELEASE.md) for the active Android Version 1.0 scope, hardening phases, signing inputs, Play Store requirements, and release-candidate checklist. Apple App Store work is tracked as a deferred next phase. Release secrets must be supplied through a secure secret store or local untracked configuration.
+
 The iOS simulator test task is unavailable on Windows; run it from Xcode or macOS. Android host tests exercise the shared calculation logic on this platform.

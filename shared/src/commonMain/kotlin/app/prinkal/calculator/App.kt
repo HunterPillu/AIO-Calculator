@@ -33,8 +33,10 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Functions
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,12 +63,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.prinkal.calculator.core.formatting.formatCurrency
 import app.prinkal.calculator.core.formatting.formatNumber
+import app.prinkal.calculator.core.app.AppInfo
+import app.prinkal.calculator.core.logging.AppLogger
 import app.prinkal.calculator.feature.catalog.CalculatorCatalog
 import app.prinkal.calculator.feature.catalog.CalculatorCategory
 import app.prinkal.calculator.feature.catalog.CalculatorDefinition
@@ -96,6 +101,7 @@ import app.prinkal.calculator.ui.CalculatorTheme
 
 private sealed interface AppDestination {
     data object Home : AppDestination
+    data object Settings : AppDestination
     data class Calculator(val id: String) : AppDestination
     data class EmiResultRoute(val value: EmiResult) : AppDestination
     data class LoanResultRoute(val value: LoanResultBundle) : AppDestination
@@ -132,7 +138,17 @@ private fun CalculatorApp() {
     ) { target ->
         when (target) {
             AppDestination.Home -> CalculatorHome(
-                onOpen = { destination = AppDestination.Calculator(it) }
+                onOpen = {
+                    AppLogger.calculatorOpened(it)
+                    destination = AppDestination.Calculator(it)
+                },
+                onSettings = {
+                    AppLogger.settingsOpened()
+                    destination = AppDestination.Settings
+                }
+            )
+            AppDestination.Settings -> SettingsScreen(
+                onBack = { destination = AppDestination.Home }
             )
             is AppDestination.Calculator -> when (target.id) {
                 "simple" -> SimpleCalculatorScreen(
@@ -182,7 +198,10 @@ private fun CalculatorApp() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CalculatorHome(onOpen: (String) -> Unit) {
+private fun CalculatorHome(
+    onOpen: (String) -> Unit,
+    onSettings: () -> Unit
+) {
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<CalculatorCategory?>(null) }
     val calculators = CalculatorCatalog.search(query, selectedCategory)
@@ -191,6 +210,11 @@ private fun CalculatorHome(onOpen: (String) -> Unit) {
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Calculator", fontWeight = FontWeight.SemiBold) },
+                actions = {
+                    IconButton(onClick = onSettings) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
@@ -324,6 +348,68 @@ private fun HomeHero() {
 }
 
 @Composable
+private fun SettingsScreen(onBack: () -> Unit) {
+    ResultScaffold(title = "Settings", onBack = onBack) {
+        Text("App", style = MaterialTheme.typography.titleLarge)
+        SettingsInfoCard(
+            icon = Icons.Default.Info,
+            title = AppInfo.name,
+            body = "Version ${AppInfo.versionName} (${AppInfo.versionCode})"
+        )
+        Text("About the developer", style = MaterialTheme.typography.titleLarge)
+        SettingsInfoCard(
+            icon = Icons.Default.AccountBalance,
+            title = AppInfo.developerName,
+            body = "Building focused, privacy-conscious tools for everyday calculations."
+        )
+        Text("Privacy", style = MaterialTheme.typography.titleLarge)
+        SettingsInfoCard(
+            icon = Icons.Default.Settings,
+            title = "Offline-first by design",
+            body = "Calculations are processed on this device. The app does not currently send calculation values to a server."
+        )
+        Text("Important information", style = MaterialTheme.typography.titleLarge)
+        SettingsInfoCard(
+            icon = Icons.Default.Info,
+            title = "Financial disclaimer",
+            body = "Loan and investment results are estimates based on the assumptions shown. They are not financial advice."
+        )
+        Text("Open-source components", style = MaterialTheme.typography.titleLarge)
+        Text(
+            "This app uses Kotlin Multiplatform, Compose Multiplatform, Material 3, and Kermit. " +
+                "Their licenses will be included in the release materials.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun SettingsInfoCard(
+    icon: ImageVector,
+    title: String,
+    body: String
+) {
+    OutlinedCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(14.dp))
+            Column {
+                Text(title, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(4.dp))
+                Text(body, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
 private fun CalculatorCard(
     definition: CalculatorDefinition,
     onClick: () -> Unit
@@ -436,10 +522,12 @@ private fun SimpleCalculatorScreen(onBack: () -> Unit) {
             is EvaluationResult.Success -> {
                 result = evaluation.value
                 error = null
+                AppLogger.calculationSucceeded("simple")
             }
             is EvaluationResult.Error -> {
                 result = null
                 error = evaluation.message
+                AppLogger.calculationFailed("simple")
             }
         }
     }
@@ -526,10 +614,12 @@ private fun ScientificCalculatorScreen(onBack: () -> Unit) {
             is EvaluationResult.Success -> {
                 result = evaluation.value
                 error = null
+                AppLogger.calculationSucceeded("scientific")
             }
             is EvaluationResult.Error -> {
                 result = null
                 error = evaluation.message
+                AppLogger.calculationFailed("scientific")
             }
         }
     }
@@ -635,9 +725,13 @@ private fun EmiCalculatorScreen(
         ) {
             is EmiCalculationResult.Success -> {
                 error = null
+                AppLogger.calculationSucceeded("emi")
                 onResult(calculation.value)
             }
-            is EmiCalculationResult.Error -> error = calculation.message
+            is EmiCalculationResult.Error -> {
+                error = calculation.message
+                AppLogger.calculationFailed("emi")
+            }
         }
     }
 
@@ -763,9 +857,13 @@ private fun SipCalculatorScreen(
         ) {
             is SipCalculationResult.Success -> {
                 error = null
+                AppLogger.calculationSucceeded("sip")
                 onResult(calculation.value)
             }
-            is SipCalculationResult.Error -> error = calculation.message
+            is SipCalculationResult.Error -> {
+                error = calculation.message
+                AppLogger.calculationFailed("sip")
+            }
         }
     }
 
@@ -858,9 +956,13 @@ private fun LumpsumCalculatorScreen(
         ) {
             is LumpsumCalculationResult.Success -> {
                 error = null
+                AppLogger.calculationSucceeded("lumpsum")
                 onResult(calculation.value)
             }
-            is LumpsumCalculationResult.Error -> error = calculation.message
+            is LumpsumCalculationResult.Error -> {
+                error = calculation.message
+                AppLogger.calculationFailed("lumpsum")
+            }
         }
     }
 
@@ -959,9 +1061,11 @@ private fun LoanPrepaymentScreen(
         val periodicValue = (periodic as? PeriodicPrepaymentCalculationResult.Success)?.value
         if (comparisonValue != null || periodicValue != null) {
             error = null
+            AppLogger.calculationSucceeded("loan-prepayment")
             onResult(LoanResultBundle(comparisonValue, periodicValue))
         } else {
             error = (comparison as LoanPrepaymentCalculationResult.Error).message
+            AppLogger.calculationFailed("loan-prepayment")
         }
     }
 
