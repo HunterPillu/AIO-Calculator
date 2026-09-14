@@ -19,10 +19,10 @@ SWP, SIP + Lumpsum, savings, tax, converters, utilities, history, favorites, and
 | --- | --- | --- |
 | R0 | Scope freeze and version policy | COMPLETE |
 | R1 | Diagnostics, settings, about, and disclaimers | COMPLETE |
-| R2 | Android release hardening and signing configuration | IN PROGRESS |
-| R3 | Android Play Store metadata, privacy, branding, and compliance | NOT STARTED |
+| R2 | Android release hardening and signing configuration | COMPLETE |
+| R3 | Android Play Store metadata, privacy, branding, and compliance | IN PROGRESS |
 | R4 | Android release candidate QA and artifact verification | NOT STARTED |
-| R5 | Android internal/beta distribution | BLOCKED on Play Console and signing |
+| R5 | Android internal/beta distribution | BLOCKED on Play Console and app identity |
 | R6 | Android production rollout and monitoring | BLOCKED on R5 |
 
 ## R0: Scope and version policy
@@ -65,6 +65,8 @@ ANDROID_RELEASE_KEY_PASSWORD
 
 Equivalent `android.release.*` Gradle properties are also supported.
 
+The signed Android App Bundle is generated at `androidApp/build/outputs/bundle/release/androidApp-release.aab`.
+
 ## Apple App Store track: deferred
 
 Apple App Store publication is intentionally deferred until the Android Version 1.0 release is complete. The current iOS configuration is retained as a provisional foundation, but no App Store credentials, archive, or store submission work is part of the active release. This work is tracked by the `apple-app-store-release` task.
@@ -83,11 +85,13 @@ The owner must provide or approve for the active Android release:
 
 - Google Play Console access
 - Final Android application ID
-- Android upload keystore and Play App Signing setup
+- Play App Signing setup and upload-key registration
 - Privacy policy URL and support/contact URL
 - Google Play Data Safety declarations
 - Financial disclaimer wording
 - Android age rating, target countries, category, screenshots, icon artwork, description, and release notes
+
+Draft store copy, privacy policy HTML, and screenshots are collected under `store-assets/`. The listing copy must be reviewed against the implemented Version 1.0 calculator scope before submission.
 
 ## R4: Android release candidate checks
 
@@ -99,4 +103,4 @@ The owner must provide or approve for the active Android release:
 
 ## Current blockers
 
-Android publication is blocked until the owner confirms the application ID and supplies the upload keystore, Play Console access, and store metadata through secure channels. Do not paste keystore passwords, private keys, certificates, or store API keys into source files or chat.
+Android publication is blocked until the owner confirms the application ID, configures Play Console/App Signing, publishes the privacy policy at a public URL, and approves the store metadata. Do not paste keystore passwords, private keys, certificates, or store API keys into source files or chat.

@@ -1,31 +1,70 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+# All-in-One Calculator — Long Description
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+One app for everyday calculations, financial planning, investment estimates, loans, savings, conversions, and more.
 
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+All-in-One Calculator brings a growing collection of useful calculators into one clean and easy-to-use app. Whether you need a quick mathematical calculation or want to estimate your EMI, SIP returns, loan prepayment savings, or investment growth, the app is designed to keep everything in one place.
 
-### Running the apps
+## Everyday Calculations
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+- Simple calculator
+- Scientific calculator
+- Percentage calculator
+- Discount calculator
+- Tip calculator
+- Average, ratio and fraction calculations
+- Age and date calculations
+- BMI and other useful utilities
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+## Loan & EMI Calculators
 
-### Running tests
+- EMI calculator
+- Loan repayment breakdown
+- Loan prepayment calculator
+- Tenure and EMI comparison
+- Interest savings after prepayment
+- Amortization schedules
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+## Investment Calculators
 
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
+- SIP calculator
+- Lumpsum calculator
+- SIP + Lumpsum calculator
+- SWP calculator
+- CAGR calculator
+- XIRR calculator
+- ROI and absolute return calculations
+- Inflation calculator
 
----
+## Savings Calculators
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+- FD calculator
+- RD calculator
+- PPF calculator
+- NPS calculator
+
+## Tax & Salary Utilities
+
+- GST calculator
+- Income Tax calculator
+- TDS calculator
+- HRA calculator
+- Salary calculations
+- Capital Gains calculations
+
+## Unit Converters
+
+Convert commonly used units such as length, weight, area, volume, temperature, speed, time, pressure, energy, and data.
+
+## Designed for Simplicity
+
+- Clean and modern interface
+- Fast calculations
+- Clear results and detailed breakdowns
+- Useful validation for calculator inputs
+- Light, dark, and system themes
+- Calculation history and favorites where available
+- Useful sharing and result-copying features where available
+
+## Important Note
+
+Financial and tax calculations are estimates intended for informational and planning purposes. Actual results may vary based on applicable rates, rules, fees, taxes, compounding conventions, lender terms, investment performance, and other conditions. Always verify important financial or tax decisions with the relevant institution or qualified professional.
