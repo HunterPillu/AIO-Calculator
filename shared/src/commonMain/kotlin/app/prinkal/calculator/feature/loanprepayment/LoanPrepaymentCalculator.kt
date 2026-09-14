@@ -22,11 +22,11 @@ data class LoanPrepaymentResult(
     val reduceEmiInterestSaved: Double
 )
 
-enum class PrepaymentFrequency(val months: Int, val label: String) {
-    MONTHLY(1, "Monthly"),
-    QUARTERLY(3, "Quarterly"),
-    HALF_YEARLY(6, "Half-yearly"),
-    YEARLY(12, "Yearly")
+enum class PrepaymentFrequency(val months: Int) {
+    MONTHLY(1),
+    QUARTERLY(3),
+    HALF_YEARLY(6),
+    YEARLY(12)
 }
 
 data class PeriodicPrepaymentResult(

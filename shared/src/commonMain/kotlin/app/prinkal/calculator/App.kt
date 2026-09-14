@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -97,7 +98,10 @@ import app.prinkal.calculator.feature.sip.SipCalculationResult
 import app.prinkal.calculator.feature.sip.SipCalculator
 import app.prinkal.calculator.feature.sip.SipInput
 import app.prinkal.calculator.feature.sip.SipResult
+import app.prinkal.calculator.resources.*
 import app.prinkal.calculator.ui.CalculatorTheme
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 private sealed interface AppDestination {
     data object Home : AppDestination
@@ -204,15 +208,24 @@ private fun CalculatorHome(
 ) {
     var query by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<CalculatorCategory?>(null) }
-    val calculators = CalculatorCatalog.search(query, selectedCategory)
+    val searchableText = CalculatorCatalog.calculators.associate { definition ->
+        definition.id to "${stringResource(definition.nameRes)} " +
+            stringResource(definition.descriptionRes)
+    }
+    val calculators = CalculatorCatalog.search(query, selectedCategory, searchableText)
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Calculator", fontWeight = FontWeight.SemiBold) },
+                title = {
+                    Text(stringResource(Res.string.app_title), fontWeight = FontWeight.SemiBold)
+                },
                 actions = {
                     IconButton(onClick = onSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(Res.string.accessibility_settings)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -239,14 +252,19 @@ private fun CalculatorHome(
                     value = query,
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Search calculators") },
+                    label = { Text(stringResource(Res.string.search_calculators)) },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = null)
                     },
                     trailingIcon = if (query.isNotEmpty()) {
                         {
                             IconButton(onClick = { query = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = "Clear search")
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = stringResource(
+                                        Res.string.accessibility_clear_search
+                                    )
+                                )
                             }
                         }
                     } else {
@@ -257,40 +275,51 @@ private fun CalculatorHome(
                 )
             }
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = selectedCategory == null,
-                        onClick = { selectedCategory = null },
-                        label = { Text("All") },
-                        leadingIcon = if (selectedCategory == null) {
-                            {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp)
+                ) {
+                    item {
+                        FilterChip(
+                            selected = selectedCategory == null,
+                            onClick = { selectedCategory = null },
+                            label = { Text(stringResource(Res.string.all)) },
+                            leadingIcon = if (selectedCategory == null) {
+                                {
+                                    Icon(
+                                        Icons.Default.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer
+                            )
                         )
-                    )
-                    CalculatorCategory.values().forEach { category ->
+                    }
+                    items(items = CalculatorCategory.entries.toList(), key = { it.name }) { category ->
                         FilterChip(
                             selected = selectedCategory == category,
                             onClick = {
                                 selectedCategory = if (selectedCategory == category) null else category
                             },
-                            label = { Text(category.label) }
+                            label = { Text(stringResource(category.labelRes)) }
                         )
                     }
                 }
             }
             item {
                 Text(
-                    if (query.isBlank()) "Popular calculators" else "Search results",
+                    stringResource(
+                        if (query.isBlank()) {
+                            Res.string.popular_calculators
+                        } else {
+                            Res.string.search_results
+                        }
+                    ),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -298,7 +327,7 @@ private fun CalculatorHome(
             if (calculators.isEmpty()) {
                 item {
                     Text(
-                        "No calculators match your search.",
+                        stringResource(Res.string.no_calculators_match),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -333,13 +362,13 @@ private fun HomeHero() {
             Spacer(Modifier.width(16.dp))
             Column {
                 Text(
-                    "Make every number simple",
+                    stringResource(Res.string.home_hero_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Fast, clear tools for everyday math and money decisions.",
+                    stringResource(Res.string.home_hero_description),
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
@@ -349,35 +378,47 @@ private fun HomeHero() {
 
 @Composable
 private fun SettingsScreen(onBack: () -> Unit) {
-    ResultScaffold(title = "Settings", onBack = onBack) {
-        Text("App", style = MaterialTheme.typography.titleLarge)
+    ResultScaffold(title = stringResource(Res.string.settings), onBack = onBack) {
+        Text(stringResource(Res.string.settings_app), style = MaterialTheme.typography.titleLarge)
         SettingsInfoCard(
             icon = Icons.Default.Info,
-            title = AppInfo.name,
-            body = "Version ${AppInfo.versionName} (${AppInfo.versionCode})"
+            title = stringResource(Res.string.app_name),
+            body = stringResource(
+                Res.string.version_info,
+                AppInfo.versionName,
+                AppInfo.versionCode
+            )
         )
-        Text("About the developer", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.about_developer),
+            style = MaterialTheme.typography.titleLarge
+        )
         SettingsInfoCard(
             icon = Icons.Default.AccountBalance,
-            title = AppInfo.developerName,
-            body = "Building focused, privacy-conscious tools for everyday calculations."
+            title = stringResource(Res.string.developer_name),
+            body = stringResource(Res.string.developer_description)
         )
-        Text("Privacy", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(Res.string.privacy), style = MaterialTheme.typography.titleLarge)
         SettingsInfoCard(
             icon = Icons.Default.Settings,
-            title = "Offline-first by design",
-            body = "Calculations are processed on this device. The app does not currently send calculation values to a server."
+            title = stringResource(Res.string.offline_first_title),
+            body = stringResource(Res.string.offline_first_description)
         )
-        Text("Important information", style = MaterialTheme.typography.titleLarge)
+        Text(
+            stringResource(Res.string.important_information),
+            style = MaterialTheme.typography.titleLarge
+        )
         SettingsInfoCard(
             icon = Icons.Default.Info,
-            title = "Financial disclaimer",
-            body = "Loan and investment results are estimates based on the assumptions shown. They are not financial advice."
+            title = stringResource(Res.string.financial_disclaimer_title),
+            body = stringResource(Res.string.financial_disclaimer_description)
         )
-        Text("Open-source components", style = MaterialTheme.typography.titleLarge)
         Text(
-            "This app uses Kotlin Multiplatform, Compose Multiplatform, Material 3, and Kermit. " +
-                "Their licenses will be included in the release materials.",
+            stringResource(Res.string.open_source_components),
+            style = MaterialTheme.typography.titleLarge
+        )
+        Text(
+            stringResource(Res.string.open_source_description),
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -438,7 +479,7 @@ private fun CalculatorCard(
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = definition.name,
+                    contentDescription = stringResource(definition.nameRes),
                     modifier = Modifier.padding(12.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
@@ -446,13 +487,13 @@ private fun CalculatorCard(
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    definition.name,
+                    stringResource(definition.nameRes),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(3.dp))
                 Text(
-                    definition.description,
+                    stringResource(definition.descriptionRes),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -475,7 +516,10 @@ private fun CalculatorScaffold(
                 title = { Text(title, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.accessibility_back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -533,8 +577,8 @@ private fun SimpleCalculatorScreen(onBack: () -> Unit) {
     }
 
     CalculatorScaffold(
-        title = "Simple calculator",
-        description = "Arithmetic with precedence, parentheses, and percentages.",
+        title = stringResource(Res.string.simple_calculator_title),
+        description = stringResource(Res.string.simple_calculator_screen_description),
         onBack = onBack
     ) {
         ExpressionDisplay(expression, result, error)
@@ -638,8 +682,8 @@ private fun ScientificCalculatorScreen(onBack: () -> Unit) {
     )
 
     CalculatorScaffold(
-        title = "Scientific calculator",
-        description = "Trigonometry, logarithms, powers, constants, and factorials.",
+        title = stringResource(Res.string.scientific_calculator_title),
+        description = stringResource(Res.string.scientific_calculator_screen_description),
         onBack = onBack
     ) {
         Row(
@@ -656,7 +700,17 @@ private fun ScientificCalculatorScreen(onBack: () -> Unit) {
                     }
                     clearResult()
                 },
-                label = { Text(if (angleMode == AngleMode.DEGREES) "DEG" else "RAD") }
+                label = {
+                    Text(
+                        stringResource(
+                            if (angleMode == AngleMode.DEGREES) {
+                                Res.string.degrees
+                            } else {
+                                Res.string.radians
+                            }
+                        )
+                    )
+                }
             )
         }
         ExpressionDisplay(expression, result, error)
@@ -736,20 +790,22 @@ private fun EmiCalculatorScreen(
     }
 
     CalculatorScaffold(
-        title = "EMI calculator",
-        description = "Estimate monthly payments without losing sight of total interest.",
+        title = stringResource(Res.string.emi_calculator_title),
+        description = stringResource(Res.string.emi_calculator_screen_description),
         onBack = onBack
     ) {
-        CalculatorInputField("Loan amount", loanAmount) {
+        CalculatorInputField(stringResource(Res.string.loan_amount), loanAmount) {
             loanAmount = it
             error = null
         }
-        CalculatorInputField("Annual interest rate (%)", interestRate) {
+        CalculatorInputField(stringResource(Res.string.annual_interest_rate), interestRate) {
             interestRate = it
             error = null
         }
         CalculatorInputField(
-            if (tenureInYears) "Tenure (years)" else "Tenure (months)",
+            stringResource(
+                if (tenureInYears) Res.string.tenure_years else Res.string.tenure_months
+            ),
             tenure
         ) {
             tenure = it
@@ -766,13 +822,17 @@ private fun EmiCalculatorScreen(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(if (tenureInYears) "Switch to months" else "Switch to years")
+                Text(
+                    stringResource(
+                        if (tenureInYears) Res.string.switch_to_months else Res.string.switch_to_years
+                    )
+                )
             }
             Button(
                 onClick = ::calculate,
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Calculate")
+                Text(stringResource(Res.string.calculate))
             }
         }
         error?.let {
@@ -788,7 +848,7 @@ private fun EmiResultScreen(
     onBack: () -> Unit
 ) {
     ResultScaffold(
-        title = "EMI result",
+        title = stringResource(Res.string.emi_result_title),
         onBack = onBack
     ) {
         AnimatedVisibility(visible = true, enter = fadeIn()) {
@@ -800,7 +860,10 @@ private fun EmiResultScreen(
                 )
             ) {
                 Column(modifier = Modifier.padding(22.dp)) {
-                    Text("Monthly EMI", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(
+                        stringResource(Res.string.monthly_emi),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                     Text(
                         formatCurrency(result.monthlyEmi),
                         style = MaterialTheme.typography.headlineLarge,
@@ -810,21 +873,42 @@ private fun EmiResultScreen(
                 }
             }
         }
-        SummaryRow("Total principal", formatCurrency(result.totalPrincipal))
-        SummaryRow("Total interest", formatCurrency(result.totalInterest))
-        SummaryRow("Total payment", formatCurrency(result.totalPayment))
-        Text("Amortization schedule", style = MaterialTheme.typography.titleLarge)
+        SummaryRow(
+            stringResource(Res.string.total_principal),
+            formatCurrency(result.totalPrincipal)
+        )
+        SummaryRow(
+            stringResource(Res.string.total_interest),
+            formatCurrency(result.totalInterest)
+        )
+        SummaryRow(
+            stringResource(Res.string.total_payment),
+            formatCurrency(result.totalPayment)
+        )
+        Text(
+            stringResource(Res.string.amortization_schedule),
+            style = MaterialTheme.typography.titleLarge
+        )
         result.schedule.forEach { row ->
             OutlinedCard(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(14.dp)) {
-                    Text("Month ${row.month}", fontWeight = FontWeight.SemiBold)
                     Text(
-                        "Payment ${formatCurrency(row.payment)}  ·  " +
-                            "Principal ${formatCurrency(row.principal)}  ·  " +
-                            "Interest ${formatCurrency(row.interest)}"
+                        stringResource(Res.string.month, row.month),
+                        fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        "Remaining ${formatCurrency(row.remainingBalance)}",
+                        stringResource(
+                            Res.string.payment_details,
+                            formatCurrency(row.payment),
+                            formatCurrency(row.principal),
+                            formatCurrency(row.interest)
+                        )
+                    )
+                    Text(
+                        stringResource(
+                            Res.string.remaining_balance,
+                            formatCurrency(row.remainingBalance)
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -868,28 +952,31 @@ private fun SipCalculatorScreen(
     }
 
     CalculatorScaffold(
-        title = "SIP calculator",
-        description = "Project monthly investments and see how an annual step-up changes growth.",
+        title = stringResource(Res.string.sip_calculator_title),
+        description = stringResource(Res.string.sip_calculator_screen_description),
         onBack = onBack
     ) {
-        CalculatorInputField("Monthly SIP", monthlyInvestment) {
+        CalculatorInputField(stringResource(Res.string.monthly_sip), monthlyInvestment) {
             monthlyInvestment = it
             error = null
         }
-        CalculatorInputField("Expected annual return (%)", annualReturn) {
+        CalculatorInputField(stringResource(Res.string.expected_annual_return), annualReturn) {
             annualReturn = it
             error = null
         }
-        CalculatorInputField("Investment duration (years)", durationYears) {
+        CalculatorInputField(
+            stringResource(Res.string.investment_duration_years),
+            durationYears
+        ) {
             durationYears = it
             error = null
         }
-        CalculatorInputField("Annual SIP step-up (%)", annualStepUp) {
+        CalculatorInputField(stringResource(Res.string.annual_sip_step_up), annualStepUp) {
             annualStepUp = it
             error = null
         }
         Button(onClick = ::calculate, modifier = Modifier.fillMaxWidth()) {
-            Text("Calculate SIP")
+            Text(stringResource(Res.string.calculate_sip))
         }
         error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
@@ -902,7 +989,7 @@ private fun SipResultScreen(
     result: SipResult,
     onBack: () -> Unit
 ) {
-    ResultScaffold(title = "SIP result", onBack = onBack) {
+    ResultScaffold(title = stringResource(Res.string.sip_result_title), onBack = onBack) {
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(26.dp),
@@ -911,7 +998,10 @@ private fun SipResultScreen(
             )
         ) {
             Column(modifier = Modifier.padding(22.dp)) {
-                Text("Final value", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(
+                    stringResource(Res.string.final_value),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
                 Text(
                     formatCurrency(result.finalValue),
                     style = MaterialTheme.typography.headlineLarge,
@@ -920,15 +1010,27 @@ private fun SipResultScreen(
                 )
             }
         }
-        SummaryRow("Total invested", formatCurrency(result.totalInvested))
-        SummaryRow("Estimated returns", formatCurrency(result.estimatedReturns))
-        Text("Yearly growth", style = MaterialTheme.typography.titleLarge)
+        SummaryRow(
+            stringResource(Res.string.total_invested),
+            formatCurrency(result.totalInvested)
+        )
+        SummaryRow(
+            stringResource(Res.string.estimated_returns),
+            formatCurrency(result.estimatedReturns)
+        )
+        Text(
+            stringResource(Res.string.yearly_growth),
+            style = MaterialTheme.typography.titleLarge
+        )
         result.yearlyGrowth.forEach { growth ->
             ResultCard(
-                title = "Year ${growth.year}",
+                title = stringResource(Res.string.year_title, growth.year),
                 value = formatCurrency(growth.value),
-                detail = "Invested ${formatCurrency(growth.invested)} · " +
-                    "Returns ${formatCurrency(growth.estimatedReturns)}"
+                detail = stringResource(
+                    Res.string.invested_returns,
+                    formatCurrency(growth.invested),
+                    formatCurrency(growth.estimatedReturns)
+                )
             )
         }
     }
@@ -967,24 +1069,27 @@ private fun LumpsumCalculatorScreen(
     }
 
     CalculatorScaffold(
-        title = "Lumpsum calculator",
-        description = "Project a one-time investment using annual compounding.",
+        title = stringResource(Res.string.lumpsum_calculator_title),
+        description = stringResource(Res.string.lumpsum_calculator_screen_description),
         onBack = onBack
     ) {
-        CalculatorInputField("Initial investment", initialInvestment) {
+        CalculatorInputField(stringResource(Res.string.initial_investment), initialInvestment) {
             initialInvestment = it
             error = null
         }
-        CalculatorInputField("Expected annual return (%)", annualReturn) {
+        CalculatorInputField(stringResource(Res.string.expected_annual_return), annualReturn) {
             annualReturn = it
             error = null
         }
-        CalculatorInputField("Investment duration (years)", durationYears) {
+        CalculatorInputField(
+            stringResource(Res.string.investment_duration_years),
+            durationYears
+        ) {
             durationYears = it
             error = null
         }
         Button(onClick = ::calculate, modifier = Modifier.fillMaxWidth()) {
-            Text("Calculate lumpsum")
+            Text(stringResource(Res.string.calculate_lumpsum))
         }
         error?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
@@ -997,7 +1102,7 @@ private fun LumpsumResultScreen(
     result: LumpsumResult,
     onBack: () -> Unit
 ) {
-    ResultScaffold(title = "Lumpsum result", onBack = onBack) {
+    ResultScaffold(title = stringResource(Res.string.lumpsum_result_title), onBack = onBack) {
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(26.dp),
@@ -1006,7 +1111,10 @@ private fun LumpsumResultScreen(
             )
         ) {
             Column(modifier = Modifier.padding(22.dp)) {
-                Text("Final value", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                Text(
+                    stringResource(Res.string.final_value),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
                 Text(
                     formatCurrency(result.finalValue),
                     style = MaterialTheme.typography.headlineLarge,
@@ -1015,14 +1123,26 @@ private fun LumpsumResultScreen(
                 )
             }
         }
-        SummaryRow("Invested amount", formatCurrency(result.investedAmount))
-        SummaryRow("Estimated returns", formatCurrency(result.estimatedReturns))
-        Text("Yearly growth", style = MaterialTheme.typography.titleLarge)
+        SummaryRow(
+            stringResource(Res.string.invested_amount),
+            formatCurrency(result.investedAmount)
+        )
+        SummaryRow(
+            stringResource(Res.string.estimated_returns),
+            formatCurrency(result.estimatedReturns)
+        )
+        Text(
+            stringResource(Res.string.yearly_growth),
+            style = MaterialTheme.typography.titleLarge
+        )
         result.yearlyGrowth.forEach { growth ->
             ResultCard(
-                title = "Year ${growth.year}",
+                title = stringResource(Res.string.year_title, growth.year),
                 value = formatCurrency(growth.value),
-                detail = "Estimated returns ${formatCurrency(growth.estimatedReturns)}"
+                detail = stringResource(
+                    Res.string.estimated_returns_only,
+                    formatCurrency(growth.estimatedReturns)
+                )
             )
         }
     }
@@ -1070,31 +1190,37 @@ private fun LoanPrepaymentScreen(
     }
 
     CalculatorScaffold(
-        title = "Loan prepayment",
-        description = "Compare reducing tenure, reducing EMI, or paying extra periodically.",
+        title = stringResource(Res.string.loan_prepayment_title),
+        description = stringResource(Res.string.loan_prepayment_screen_description),
         onBack = onBack
     ) {
-        CalculatorInputField("Outstanding principal", principal) {
+        CalculatorInputField(stringResource(Res.string.outstanding_principal), principal) {
             principal = it
             error = null
         }
-        CalculatorInputField("Annual interest rate (%)", rate) {
+        CalculatorInputField(stringResource(Res.string.annual_interest_rate), rate) {
             rate = it
             error = null
         }
-        CalculatorInputField("Current EMI", emi) {
+        CalculatorInputField(stringResource(Res.string.current_emi), emi) {
             emi = it
             error = null
         }
-        CalculatorInputField("Remaining tenure (months)", tenure) {
+        CalculatorInputField(stringResource(Res.string.remaining_tenure_months), tenure) {
             tenure = it
             error = null
         }
-        CalculatorInputField("One-time prepayment amount", prepayment) {
+        CalculatorInputField(
+            stringResource(Res.string.one_time_prepayment_amount),
+            prepayment
+        ) {
             prepayment = it
             error = null
         }
-        CalculatorInputField("Periodic prepayment amount", periodicPrepayment) {
+        CalculatorInputField(
+            stringResource(Res.string.periodic_prepayment_amount),
+            periodicPrepayment
+        ) {
             periodicPrepayment = it
             error = null
         }
@@ -1110,10 +1236,14 @@ private fun LoanPrepaymentScreen(
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(PrepaymentFrequency.entries[frequencyIndex].label)
+                Text(
+                    stringResource(
+                        prepaymentFrequencyResource(PrepaymentFrequency.entries[frequencyIndex])
+                    )
+                )
             }
             Button(onClick = ::calculate, modifier = Modifier.weight(1f)) {
-                Text("Compare")
+                Text(stringResource(Res.string.compare))
             }
         }
         error?.let {
@@ -1127,27 +1257,48 @@ private fun LoanResultScreen(
     result: LoanResultBundle,
     onBack: () -> Unit
 ) {
-    ResultScaffold(title = "Loan prepayment result", onBack = onBack) {
+    ResultScaffold(
+        title = stringResource(Res.string.loan_prepayment_result_title),
+        onBack = onBack
+    ) {
         result.comparison?.let { comparison ->
-            Text("One-time prepayment", style = MaterialTheme.typography.titleLarge)
-            SummaryRow("Original tenure", "${comparison.original.months} months")
-            ResultCard(
-                title = "Reduce tenure",
-                value = "${comparison.reduceTenure.months} months",
-                detail = "Interest saved ${formatCurrency(comparison.reduceTenureInterestSaved)}"
+            Text(
+                stringResource(Res.string.one_time_prepayment),
+                style = MaterialTheme.typography.titleLarge
+            )
+            SummaryRow(
+                stringResource(Res.string.original_tenure_label),
+                stringResource(Res.string.original_tenure, comparison.original.months)
             )
             ResultCard(
-                title = "Reduce EMI",
+                title = stringResource(Res.string.reduce_tenure),
+                value = stringResource(Res.string.months, comparison.reduceTenure.months),
+                detail = stringResource(
+                    Res.string.interest_saved,
+                    formatCurrency(comparison.reduceTenureInterestSaved)
+                )
+            )
+            ResultCard(
+                title = stringResource(Res.string.reduce_emi),
                 value = formatCurrency(comparison.reduceEmi.emi),
-                detail = "Interest saved ${formatCurrency(comparison.reduceEmiInterestSaved)}"
+                detail = stringResource(
+                    Res.string.interest_saved,
+                    formatCurrency(comparison.reduceEmiInterestSaved)
+                )
             )
         }
         result.periodic?.let { periodic ->
-            Text("Periodic prepayment", style = MaterialTheme.typography.titleLarge)
+            Text(
+                stringResource(Res.string.periodic_prepayment),
+                style = MaterialTheme.typography.titleLarge
+            )
             ResultCard(
-                title = "New payoff plan",
-                value = "${periodic.afterPrepayments.months} months",
-                detail = "Interest saved ${formatCurrency(periodic.interestSaved)}"
+                title = stringResource(Res.string.new_payoff_plan),
+                value = stringResource(Res.string.months, periodic.afterPrepayments.months),
+                detail = stringResource(
+                    Res.string.interest_saved,
+                    formatCurrency(periodic.interestSaved)
+                )
             )
         }
     }
@@ -1166,7 +1317,10 @@ private fun ResultScaffold(
                 title = { Text(title, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.accessibility_back)
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -1303,12 +1457,26 @@ private fun CalculatorKey(
         contentPadding = PaddingValues(4.dp)
     ) {
         when (label) {
-            "⌫" -> Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = "Backspace")
-            "AC" -> Icon(Icons.Default.Delete, contentDescription = "Clear")
+            "⌫" -> Icon(
+                Icons.AutoMirrored.Filled.Backspace,
+                contentDescription = stringResource(Res.string.accessibility_backspace)
+            )
+            "AC" -> Icon(
+                Icons.Default.Delete,
+                contentDescription = stringResource(Res.string.accessibility_clear)
+            )
             else -> Text(label, fontSize = 18.sp)
         }
     }
 }
+
+private fun prepaymentFrequencyResource(frequency: PrepaymentFrequency): StringResource =
+    when (frequency) {
+        PrepaymentFrequency.MONTHLY -> Res.string.monthly
+        PrepaymentFrequency.QUARTERLY -> Res.string.quarterly
+        PrepaymentFrequency.HALF_YEARLY -> Res.string.half_yearly
+        PrepaymentFrequency.YEARLY -> Res.string.yearly
+    }
 
 private fun toggleSign(expression: String): String {
     if (expression.isEmpty()) return "-"

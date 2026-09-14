@@ -1,15 +1,18 @@
 package app.prinkal.calculator.feature.catalog
 
-enum class CalculatorCategory(val label: String) {
-    MATHEMATICS("Mathematics"),
-    LOANS("Loans"),
-    INVESTMENTS("Investments")
+import app.prinkal.calculator.resources.*
+import org.jetbrains.compose.resources.StringResource
+
+enum class CalculatorCategory(val labelRes: StringResource) {
+    MATHEMATICS(Res.string.category_mathematics),
+    LOANS(Res.string.category_loans),
+    INVESTMENTS(Res.string.category_investments)
 }
 
 data class CalculatorDefinition(
     val id: String,
-    val name: String,
-    val description: String,
+    val nameRes: StringResource,
+    val descriptionRes: StringResource,
     val category: CalculatorCategory,
     val isPopular: Boolean
 )
@@ -18,55 +21,58 @@ object CalculatorCatalog {
     val calculators: List<CalculatorDefinition> = listOf(
         CalculatorDefinition(
             id = "simple",
-            name = "Simple Calculator",
-            description = "Everyday arithmetic with parentheses and percentages.",
+            nameRes = Res.string.simple_calculator_name,
+            descriptionRes = Res.string.simple_calculator_description,
             category = CalculatorCategory.MATHEMATICS,
             isPopular = true
         ),
         CalculatorDefinition(
             id = "scientific",
-            name = "Scientific Calculator",
-            description = "Trigonometry, logarithms, powers, constants, and factorials.",
+            nameRes = Res.string.scientific_calculator_name,
+            descriptionRes = Res.string.scientific_calculator_description,
             category = CalculatorCategory.MATHEMATICS,
             isPopular = true
         ),
         CalculatorDefinition(
             id = "emi",
-            name = "EMI Calculator",
-            description = "Monthly loan payment, interest, total payment, and amortization.",
+            nameRes = Res.string.emi_calculator_name,
+            descriptionRes = Res.string.emi_calculator_description,
             category = CalculatorCategory.LOANS,
             isPopular = true
         ),
         CalculatorDefinition(
             id = "loan-prepayment",
-            name = "Loan Prepayment",
-            description = "Compare reducing loan tenure or reducing the EMI after prepayment.",
+            nameRes = Res.string.loan_prepayment_name,
+            descriptionRes = Res.string.loan_prepayment_description,
             category = CalculatorCategory.LOANS,
             isPopular = false
         ),
         CalculatorDefinition(
             id = "sip",
-            name = "SIP Calculator",
-            description = "Project monthly investments with optional annual step-up.",
+            nameRes = Res.string.sip_calculator_name,
+            descriptionRes = Res.string.sip_calculator_description,
             category = CalculatorCategory.INVESTMENTS,
             isPopular = true
         ),
         CalculatorDefinition(
             id = "lumpsum",
-            name = "Lumpsum Calculator",
-            description = "Project a one-time investment with annual compounding.",
+            nameRes = Res.string.lumpsum_calculator_name,
+            descriptionRes = Res.string.lumpsum_calculator_description,
             category = CalculatorCategory.INVESTMENTS,
             isPopular = false
         )
     )
 
-    fun search(query: String, category: CalculatorCategory? = null): List<CalculatorDefinition> {
+    fun search(
+        query: String,
+        category: CalculatorCategory? = null,
+        searchableText: Map<String, String>
+    ): List<CalculatorDefinition> {
         val normalizedQuery = query.trim().lowercase()
         return calculators.filter { calculator ->
             (category == null || calculator.category == category) &&
                 (normalizedQuery.isEmpty() ||
-                    calculator.name.lowercase().contains(normalizedQuery) ||
-                    calculator.description.lowercase().contains(normalizedQuery))
+                    searchableText[calculator.id].orEmpty().lowercase().contains(normalizedQuery))
         }
     }
 }

@@ -7,6 +7,10 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+compose.resources {
+    packageOfResClass = "app.prinkal.calculator.resources"
+}
+
 kotlin {
     listOf(
         iosArm64(),

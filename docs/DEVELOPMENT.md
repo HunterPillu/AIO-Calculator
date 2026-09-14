@@ -25,6 +25,7 @@ Open `iosApp` in Xcode to run the iOS target and its shared Compose UI.
 - Keep calculator input screens separate from result screens when results contain schedules or comparisons.
 - Use shared `formatNumber`/`formatCurrency` for display values and do not round inside calculation engines.
 - Use icons with content descriptions for navigation and calculator actions.
+- Keep user-visible copy in `shared/src/commonMain/composeResources/values/strings.xml` and access it through Compose Resources.
 
 ## Release workflow
 
