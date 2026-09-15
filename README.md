@@ -2,6 +2,22 @@
 
 One app for everyday calculations, financial planning, investment estimates, loans, savings, conversions, and more.
 
+## GitHub Pages (Project Site)
+
+This repository includes a simple GitHub Pages site under `docs/`.
+
+- Project URL: `https://hunterpillu.github.io/AIO-Calculator/`
+- Privacy Policy URL: `https://hunterpillu.github.io/AIO-Calculator/privacy.html`
+
+### How to edit Pages content
+
+- Landing page: `/home/runner/work/AIO-Calculator/AIO-Calculator/docs/index.html`
+- Privacy page: `/home/runner/work/AIO-Calculator/AIO-Calculator/docs/privacy.html`
+- Shared styles: `/home/runner/work/AIO-Calculator/AIO-Calculator/docs/styles.css`
+- Store listing assets source: `/home/runner/work/AIO-Calculator/AIO-Calculator/store-assets/`
+
+If GitHub Pages is not enabled yet, set it to deploy from the `docs/` folder on the default branch in repository settings.
+
 All-in-One Calculator brings a growing collection of useful calculators into one clean and easy-to-use app. Whether you need a quick mathematical calculation or want to estimate your EMI, SIP returns, loan prepayment savings, or investment growth, the app is designed to keep everything in one place.
 
 ## Everyday Calculations
